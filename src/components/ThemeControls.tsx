@@ -58,14 +58,14 @@ export default function ThemeControls() {
       <button
         onClick={() => setOpen((v) => !v)}
         aria-label="Edit theme"
-        className="fixed bottom-4 right-4 z-[1000] grid h-11 w-11 place-items-center rounded-full border border-border bg-surface text-lg shadow-lg transition hover:scale-105"
+        className="fixed bottom-4 left-4 z-[1000] grid h-11 w-11 place-items-center rounded-full border border-border bg-surface text-lg shadow-lg transition hover:scale-105"
         title="Theme"
       >
         🎨
       </button>
 
       {open && (
-        <div className="fixed bottom-20 right-4 z-[1000] flex max-h-[80vh] w-80 flex-col overflow-hidden rounded-2xl border border-border bg-surface shadow-2xl">
+        <div className="fixed bottom-20 left-4 z-[1000] flex max-h-[80vh] w-80 flex-col overflow-hidden rounded-2xl border border-border bg-surface shadow-2xl">
           <div className="flex items-center justify-between border-b border-border px-4 py-3">
             <span className="text-sm font-semibold">Theme</span>
             <button

@@ -14,6 +14,7 @@ export default function Inspector({
   members,
   shapeId,
   onStartCrop,
+  onOpenLightbox,
   onClose,
 }: {
   boardId: string;
@@ -21,6 +22,7 @@ export default function Inspector({
   members: Profile[];
   shapeId: string;
   onStartCrop: (shapeId: string) => void;
+  onOpenLightbox: (src: string) => void;
   onClose: () => void;
 }) {
   const supabase = useMemo(() => createClient(), []);
@@ -199,12 +201,21 @@ export default function Inspector({
           ) : (
             <>
               {previewUrl ? (
-                // eslint-disable-next-line @next/next/no-img-element
-                <img
-                  src={previewUrl}
-                  alt={upload?.original_filename ?? "preview"}
-                  className="mb-2 max-h-44 w-full rounded-lg border border-border object-contain"
-                />
+                <div className="group relative mb-2">
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img
+                    src={previewUrl}
+                    alt={upload?.original_filename ?? "preview"}
+                    className="max-h-44 w-full rounded-lg border border-border object-contain"
+                  />
+                  <button
+                    onClick={() => onOpenLightbox(previewUrl)}
+                    title="View fullscreen"
+                    className="absolute right-1.5 top-1.5 grid h-7 w-7 place-items-center rounded-md bg-surface/90 text-xs opacity-0 shadow transition group-hover:opacity-100 hover:bg-accent hover:text-white"
+                  >
+                    ↗
+                  </button>
+                </div>
               ) : (
                 <div className="mb-2 flex h-28 items-center justify-center rounded-lg border border-dashed border-border text-xs text-muted">
                   {upload?.file_type === "application/pdf" ? "PDF" : "No preview"}

@@ -40,6 +40,7 @@ export default function LeftSidebar({
   onFilter,
   counts,
   onOpenTheme,
+  onOpenPinTool,
 }: {
   view: BoardView;
   onView: (v: BoardView) => void;
@@ -47,6 +48,7 @@ export default function LeftSidebar({
   onFilter: (f: BrowseFilter) => void;
   counts: BoardCounts;
   onOpenTheme: () => void;
+  onOpenPinTool: () => void;
 }) {
   return (
     <nav className="flex h-full w-56 shrink-0 flex-col overflow-y-auto border-r border-border bg-surface">
@@ -86,6 +88,15 @@ export default function LeftSidebar({
             </li>
           );
         })}
+        <li>
+          <button
+            onClick={() => { onView("canvas"); onOpenPinTool(); }}
+            className="flex w-full items-center gap-2.5 rounded-lg px-2.5 py-2 text-sm text-foreground transition hover:bg-accent-soft"
+          >
+            <span className="w-4 text-center">📍</span>
+            <span className="flex-1 text-left">Add pin</span>
+          </button>
+        </li>
         <li>
           <button
             onClick={onOpenTheme}

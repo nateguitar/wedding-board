@@ -21,6 +21,8 @@ import { createAssetStore, isSupabaseSrc, pathFromSrc } from "@/lib/board-assets
 import { placeFileOnCanvas, isAccepted } from "@/lib/upload";
 import { placeLinkOnCanvas } from "@/lib/link";
 import { cropRegionToBlob } from "@/lib/crop";
+import { PinShapeUtil, PinTool } from "@/lib/pin-shape";
+import PinToolbar from "@/components/board/PinToolbar";
 
 export type SaveStatus = "idle" | "saving" | "saved";
 
@@ -36,6 +38,9 @@ export type CanvasApi = {
   addSection: (name: string) => string | null;
   getSections: () => CanvasSection[];
   startCropRegion: (imageShapeId: string) => boolean;
+  goHome: () => void;
+  saveHome: () => void;
+  openPinTool: () => void;
 };
 
 type Props = {
@@ -160,7 +165,10 @@ export default function Canvas(props: Props) {
   const applyingRemote = useRef(false);
   const [cursors, setCursors] = useState<RemoteCursor[]>([]);
   const [cropSession, setCropSession] = useState<{ imageId: string; rectId: string } | null>(null);
+  const [homeSaved, setHomeSaved] = useState(false);
+  const [pinToolOpen, setPinToolOpen] = useState(false);
   const myColor = useMemo(() => colorFor(userId), [userId]);
+  const homeKey = `katari-home-${boardId}`;
 
   const sendCursor = useCallbackRef((x: number, y: number) => {
     channelRef.current?.send({
@@ -339,6 +347,29 @@ export default function Canvas(props: Props) {
     }
   });
 
+  const goHome = useCallbackRef(() => {
+    const editor = editorRef.current;
+    if (!editor) return;
+    try {
+      const saved = localStorage.getItem(homeKey);
+      if (saved) {
+        const cam = JSON.parse(saved) as { x: number; y: number; z: number };
+        editor.setCamera({ x: cam.x, y: cam.y, z: cam.z }, { animation: { duration: 400 } });
+        return;
+      }
+    } catch { /* fall through to zoomToFit */ }
+    editor.zoomToFit({ animation: { duration: 400 } });
+  });
+
+  const saveHome = useCallbackRef(() => {
+    const editor = editorRef.current;
+    if (!editor) return;
+    const cam = editor.getCamera();
+    localStorage.setItem(homeKey, JSON.stringify({ x: cam.x, y: cam.y, z: cam.z }));
+    setHomeSaved(true);
+    setTimeout(() => setHomeSaved(false), 2000);
+  });
+
   const cancelCrop = useCallbackRef(() => {
     const editor = editorRef.current;
     if (editor && cropSession) editor.deleteShape(cropSession.rectId as TLShapeId);
@@ -368,6 +399,9 @@ export default function Canvas(props: Props) {
       addSection,
       getSections,
       startCropRegion,
+      goHome,
+      saveHome,
+      openPinTool: () => setPinToolOpen(true),
     });
 
     // Restore saved canvas, if any.
@@ -477,10 +511,39 @@ export default function Canvas(props: Props) {
           e.target.value = "";
         }}
       />
-      <Tldraw onMount={handleMount} assets={assetStore}>
+      <Tldraw
+        onMount={handleMount}
+        assets={assetStore}
+        shapeUtils={[PinShapeUtil]}
+        tools={[PinTool]}
+      >
         <SelectionReporter onSelectShape={onSelectShape} />
         <Cursors cursors={cursors} onSend={sendCursor} />
+        {pinToolOpen && <PinToolbar onClose={() => setPinToolOpen(false)} />}
       </Tldraw>
+
+      {/* Home button — bottom-left of canvas */}
+      <div className="absolute bottom-4 left-4 z-[200] flex items-center gap-1.5">
+        <button
+          onClick={goHome}
+          title="Go home (zoom to fit all content)"
+          className="flex items-center gap-1.5 rounded-lg border border-border bg-surface/90 px-2.5 py-1.5 text-sm shadow backdrop-blur transition hover:border-accent hover:text-accent"
+        >
+          ⌂ Home
+        </button>
+        <button
+          onClick={saveHome}
+          title="Save current view as home position"
+          className={[
+            "rounded-lg border px-2.5 py-1.5 text-xs shadow backdrop-blur transition",
+            homeSaved
+              ? "border-accent bg-accent text-white"
+              : "border-border bg-surface/90 text-muted hover:border-accent hover:text-accent",
+          ].join(" ")}
+        >
+          {homeSaved ? "✓ Saved!" : "Save view"}
+        </button>
+      </div>
 
       {cropSession && (
         <div className="absolute left-1/2 top-3 z-[400] flex -translate-x-1/2 items-center gap-2 rounded-xl border border-border bg-surface px-3 py-2 shadow-lg">

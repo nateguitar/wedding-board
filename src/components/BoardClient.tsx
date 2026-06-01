@@ -11,6 +11,7 @@ import CompareView from "@/components/board/CompareView";
 import SectionsPanel from "@/components/board/SectionsPanel";
 import { useBoardItems } from "@/lib/use-board-items";
 import type { CanvasApi, SaveStatus } from "@/components/Canvas";
+import Lightbox from "@/components/Lightbox";
 import type { Board, Profile } from "@/lib/types";
 
 const Canvas = dynamic(() => import("@/components/Canvas"), {
@@ -31,6 +32,9 @@ const noopApi: CanvasApi = {
   addSection: () => null,
   getSections: () => [],
   startCropRegion: () => false,
+  goHome: () => {},
+  saveHome: () => {},
+  openPinTool: () => {},
 };
 
 export default function BoardClient({
@@ -49,6 +53,7 @@ export default function BoardClient({
   const [search, setSearch] = useState("");
   const [selected, setSelected] = useState<string | null>(null);
   const [saveStatus, setSaveStatus] = useState<SaveStatus>("idle");
+  const [lightboxSrc, setLightboxSrc] = useState<string | null>(null);
   const apiRef = useRef<CanvasApi>(noopApi);
 
   const { items, counts, loading } = useBoardItems(board.id);
@@ -99,6 +104,7 @@ export default function BoardClient({
         onFilter={handleFilter}
         counts={counts}
         onOpenTheme={() => window.dispatchEvent(new Event("wb:open-theme"))}
+        onOpenPinTool={() => { setView("canvas"); setTimeout(() => apiRef.current.openPinTool(), 60); }}
       />
 
       <div className="flex min-w-0 flex-1 flex-col">
@@ -180,6 +186,7 @@ export default function BoardClient({
             setView("canvas");
             setTimeout(() => apiRef.current.startCropRegion(id), 60);
           }}
+          onOpenLightbox={(src) => setLightboxSrc(src)}
           onClose={() => {
             apiRef.current.clearSelection();
             setSelected(null);
@@ -193,6 +200,13 @@ export default function BoardClient({
           members={members}
           items={items}
           onJump={jumpTo}
+        />
+      )}
+
+      {lightboxSrc && (
+        <Lightbox
+          src={lightboxSrc}
+          onClose={() => setLightboxSrc(null)}
         />
       )}
     </div>
