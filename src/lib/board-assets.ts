@@ -10,6 +10,10 @@ import type { TLAsset, TLAssetStore } from "tldraw";
 // asset stores (it's routed straight to our resolve() below).
 export const SUPABASE_SRC_PREFIX = "asset:";
 
+// Legacy prefix used before the asset: scheme fix. Still present in any
+// snapshots saved before that change — we must keep resolving them.
+const LEGACY_PREFIX = "supabase://";
+
 const BUCKET = "uploads";
 const SIGNED_TTL_SECONDS = 60 * 60; // 1 hour
 const CACHE_MARGIN_MS = 5 * 60 * 1000; // refresh 5 min early
@@ -19,10 +23,11 @@ export function toSupabaseSrc(storagePath: string) {
 }
 
 export function isSupabaseSrc(src: string | null | undefined): src is string {
-  return !!src && src.startsWith(SUPABASE_SRC_PREFIX);
+  return !!src && (src.startsWith(SUPABASE_SRC_PREFIX) || src.startsWith(LEGACY_PREFIX));
 }
 
 export function pathFromSrc(src: string) {
+  if (src.startsWith(LEGACY_PREFIX)) return src.slice(LEGACY_PREFIX.length);
   return src.slice(SUPABASE_SRC_PREFIX.length);
 }
 
