@@ -3,6 +3,7 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { createClient } from "@/lib/supabase/client";
 import { ACCEPTED_IMAGE_TYPES } from "@/lib/upload";
+import { pdfThumbPath } from "@/lib/use-board-items";
 import type { Comment, Link, Profile, Rating, Reaction, Upload } from "@/lib/types";
 
 const STATUS_OPTIONS = ["", "shortlisted", "maybe", "rejected"] as const;
@@ -56,11 +57,18 @@ export default function Inspector({
     setReactions((rx.data as Reaction[]) ?? []);
     setLoading(false);
 
-    if (up && ACCEPTED_IMAGE_TYPES.includes(up.file_type)) {
-      const { data } = await supabase.storage
-        .from("uploads")
-        .createSignedUrl(up.storage_path, 3600);
-      setPreviewUrl(data?.signedUrl ?? null);
+    if (up) {
+      const isPdf = up.file_type === "application/pdf";
+      const isImage = ACCEPTED_IMAGE_TYPES.includes(up.file_type);
+      if (isPdf || isImage) {
+        const pathToSign = isPdf ? pdfThumbPath(up.storage_path) : up.storage_path;
+        const { data } = await supabase.storage
+          .from("uploads")
+          .createSignedUrl(pathToSign, 3600);
+        setPreviewUrl(data?.signedUrl ?? null);
+      } else {
+        setPreviewUrl(null);
+      }
     } else {
       setPreviewUrl(null);
     }

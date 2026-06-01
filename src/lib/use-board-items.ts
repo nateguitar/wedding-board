@@ -49,10 +49,17 @@ export function useBoardItems(boardId: string) {
 
       const signed = await Promise.all(
         uploads.map(async (up) => {
-          if (!ACCEPTED_IMAGE_TYPES.includes(up.file_type)) return null;
+          // For images, sign the original path directly.
+          // For PDFs, sign the thumbnail PNG (stored at {boardId}/{uid}-thumb.png).
+          const pathToSign = up.file_type === "application/pdf"
+            ? pdfThumbPath(up.storage_path)
+            : ACCEPTED_IMAGE_TYPES.includes(up.file_type)
+              ? up.storage_path
+              : null;
+          if (!pathToSign) return null;
           const { data } = await supabase.storage
             .from("uploads")
-            .createSignedUrl(up.storage_path, 3600);
+            .createSignedUrl(pathToSign, 3600);
           return data?.signedUrl ?? null;
         })
       );
@@ -112,6 +119,19 @@ export function useBoardItems(boardId: string) {
   }, [items]);
 
   return { items, counts, loading };
+}
+
+// Derive the thumbnail PNG path from a PDF's original storage path.
+// Upload convention: original = "{boardId}/{uuid}-{filename}.pdf"
+//                   thumb    = "{boardId}/{uuid}-thumb.png"
+// UUIDs are exactly 36 characters (xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx).
+export function pdfThumbPath(storagePath: string): string {
+  const slash = storagePath.indexOf("/");
+  if (slash === -1) return storagePath;
+  const boardId = storagePath.slice(0, slash);
+  const file = storagePath.slice(slash + 1);
+  const uuid = file.slice(0, 36); // UUID is always 36 chars
+  return `${boardId}/${uuid}-thumb.png`;
 }
 
 function safeHost(url: string) {
