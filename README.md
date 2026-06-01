@@ -1,4 +1,8 @@
-# Wedding Board
+# Katari
+
+> A private, collaborative mood-board for reviewing ideas together — started for
+> wedding planning, now general-purpose. (Project folder/package is still named
+> `wedding-board` for continuity; only the product name changed.)
 
 A private, collaborative image-review whiteboard for two people. Upload images
 and PDFs onto an infinite tldraw canvas, arrange them freely, and review each one

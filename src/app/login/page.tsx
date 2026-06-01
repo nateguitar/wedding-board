@@ -56,7 +56,7 @@ export default function LoginPage() {
     <main className="flex min-h-full items-center justify-center px-4">
       <div className="w-full max-w-sm">
         <div className="mb-8 text-center">
-          <h1 className="text-3xl font-semibold tracking-tight">Wedding Board</h1>
+          <h1 className="text-3xl font-semibold tracking-tight">Katari</h1>
           <p className="mt-2 text-sm text-muted">
             A quiet place to review ideas together.
           </p>

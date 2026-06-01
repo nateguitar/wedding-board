@@ -1,4 +1,4 @@
-// Shared domain types for the wedding board.
+// Shared domain types for Katari.
 
 export type Profile = {
   id: string;
